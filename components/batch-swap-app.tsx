@@ -7,7 +7,7 @@ import { ConnectKitButton } from "connectkit"
 import { TokenList } from "./token-list"
 import { SwapButton } from "./swap-button"
 import type { TokenBalance } from "@/types/token"
-import { fetchTokenBalances } from "@/lib/actions"
+
 
 const TRAIL_ID = "01981008-788e-7612-b501-b7f568328ef2"
 const VERSION_ID = "01981008-7892-747d-adfe-4fbf2281aac9"
@@ -28,6 +28,7 @@ export function BatchSwapApp() {
   }, [switchChain, status])
 
   useEffect(() => {
+    console.log(`status: ${status}, address: ${address}`)
     if (status === "connected" && address) {
       loadTokenBalances()
     }
@@ -38,7 +39,19 @@ export function BatchSwapApp() {
 
     setLoading(true)
     try {
-      const tokenBalances = await fetchTokenBalances(address)
+      const response = await fetch('/api/token-balances', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ walletAddress: address }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch token balances: ${response.statusText}`)
+      }
+
+      const tokenBalances = await response.json()
       setTokens(tokenBalances)
     } catch (error) {
       console.error("Error loading token balances:", error)

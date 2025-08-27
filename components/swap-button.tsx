@@ -35,12 +35,15 @@ export function SwapButton({
   const [targetToken, setTargetToken] = useState("USDC")
 
   const handleSwap = async () => {
-    if (!address || !walletClient || selectedTokens.length === 0) return
+    if (!address || !walletClient || selectedTokens.length === 0) {
+      console.log("No address or wallet client or no selected tokens, won't proceed with swap", { address, walletClient, selectedTokens })
+      return
+    }
 
     try {
       const evaluationPromises = selectedTokens.map(async (token) => {
         const percentage = selectedTokensWithPercentages.get(token.address) || 100
-        const humanReadableAmount = Number.parseFloat(token.humanReadableAmount)
+        const humanReadableAmount = Number.parseFloat(token.humanReadableAmount.toString())
         const actualAmountToSwap = (humanReadableAmount * percentage) / 100
 
         const response = await fetch(
@@ -56,7 +59,7 @@ export function SwapButton({
               userInputs: {
                 [primaryNodeId]: {
                   contract_address: { value: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913" }, // USDC
-                  sell_token_address: { value: token.address },
+                  sell_token_address: { value: token.address === "native" ? "0x0000000000000000000000000000000000000000" : token.address },
                   sell_token_amount: { value: actualAmountToSwap.toString() },
                 },
               },
@@ -76,6 +79,7 @@ export function SwapButton({
           to: result.swapSteps.approval.contractAddress as `0x${string}`,
           data: result.swapSteps.approval.callData as `0x${string}`,
           value: BigInt(0),
+          gas: BigInt(1_000_000), // 1 million gas limit for approvals
         }))
 
       if (approvalCalls.length > 0) {
@@ -88,7 +92,7 @@ export function SwapButton({
 
         console.log("[v0] Approval calls sent, waiting for confirmation:", approvalCallsId)
         const approvalStatus = await waitForCallsStatus(walletClient, {
-          id: approvalCallsId,
+          id: approvalCallsId.id,
         })
 
         if (approvalStatus.status !== "success") {
@@ -104,6 +108,7 @@ export function SwapButton({
           to: result.swapSteps.swap.contractAddress as `0x${string}`,
           data: result.swapSteps.swap.callData as `0x${string}`,
           value: BigInt(result.swapSteps.swap.payableAmount || "0"),
+          gas: BigInt(2_000_000), // 2 million gas limit for swaps
         }))
 
       console.log("[v0] Sending batch swaps:", swapCalls)
@@ -113,7 +118,7 @@ export function SwapButton({
 
       console.log("[v0] Swap calls sent, waiting for confirmation:", swapCallsId)
       const swapStatus = await waitForCallsStatus(walletClient, {
-        id: swapCallsId,
+        id: swapCallsId.id,
       })
 
       if (swapStatus.status !== "success") {
@@ -182,13 +187,13 @@ export function SwapButton({
             {selectedTokens.map((token) => {
               const percentage = selectedTokensWithPercentages.get(token.address) || 100
               const tokenValue = (token.valueUsd * percentage) / 100
-              const tokenAmount = (Number.parseFloat(token.humanReadableAmount) * percentage) / 100
+              const tokenAmount = (Number.parseFloat(token.humanReadableAmount.toString()) * percentage) / 100
 
               return (
                 <div key={token.address} className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
                     <img
-                      src={token.logoUrl || "/placeholder.svg"}
+                      src={token.logo || "/placeholder.svg"}
                       alt={token.symbol}
                       className="w-8 h-8 rounded-full"
                     />
@@ -215,7 +220,7 @@ export function SwapButton({
           <Button
             onClick={handleSwap}
             disabled={swapStep !== "idle" || selectedTokens.length === 0}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2"
+            className="cursor-pointer flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2"
           >
             {getButtonText()}
             {swapStep === "idle" && (
@@ -227,7 +232,7 @@ export function SwapButton({
 
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="bg-black hover:bg-gray-800 text-white p-4 rounded-xl border border-gray-700"
+            className="cursor-pointer bg-black hover:bg-gray-800 text-white p-4 rounded-xl border border-gray-700"
             size="icon"
           >
             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
