@@ -4,24 +4,52 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 
-const farcasterFrame = {
-  frame: {
-    name: "Batch Token Swap",
-    version: "1",
-    iconUrl: "https://v0-batch-swap-tokens.vercel.app/api/icon",
-    imageUrl: "https://v0-batch-swap-tokens.vercel.app/api/image",
-    buttonTitle: "🔄 Batch Swap",
-    splashImageUrl: "https://v0-batch-swap-tokens.vercel.app/api/splash",
-    splashBackgroundColor: "#6200EA",
+const baseUrl = "https://v0-batch-swap-tokens.vercel.app"
+
+const frameEmbed = {
+  version: "next",
+  imageUrl: `${baseUrl}/api/image`,
+  button: {
+    title: "Swap Tokens Now",
+    action: {
+      type: "launch_frame",
+      name: "Batch Token Swap",
+      url: baseUrl,
+      splashImageUrl: `${baseUrl}/api/splash`,
+      splashBackgroundColor: "#6200EA",
+    },
   },
 }
 
 export const metadata: Metadata = {
-  title: "Batch Swap Tokens",
-  description: "Batch swap tokens to clean up your wallet",
+  title: "Batch Token Swap",
+  description: "Swap your tokens all in one go, using a Herd trail!",
   generator: "v0.app",
+  metadataBase: new URL(baseUrl),
+  openGraph: {
+    title: "Batch Token Swap",
+    description: "Swap your tokens all in one go, using a Herd trail!",
+    url: baseUrl,
+    siteName: "Batch Token Swap",
+    images: [
+      {
+        url: "/api/image",
+        width: 1200,
+        height: 800,
+        alt: "Batch Token Swap",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Batch Token Swap",
+    description: "Swap your tokens all in one go, using a Herd trail!",
+    images: ["/api/image"],
+  },
   other: {
-    "fc:miniapp": JSON.stringify(farcasterFrame),
+    "fc:miniapp": JSON.stringify(frameEmbed),
   },
 }
 
