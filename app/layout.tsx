@@ -9,15 +9,10 @@ const farcasterFrame = {
     name: "Batch Token Swap",
     version: "1",
     iconUrl: "https://v0-batch-swap-tokens.vercel.app/api/icon",
-    homeUrl: "https://v0-batch-swap-tokens.vercel.app",
     imageUrl: "https://v0-batch-swap-tokens.vercel.app/api/image",
     buttonTitle: "🔄 Batch Swap",
     splashImageUrl: "https://v0-batch-swap-tokens.vercel.app/api/splash",
     splashBackgroundColor: "#6200EA",
-    subtitle: "Batch Token Swap",
-    description: "Batch swap tokens to clean up your wallet using Herd trails",
-    primaryCategory: "finance",
-    tags: ["herd", "dune", "swap", "tokens"],
   },
 }
 
