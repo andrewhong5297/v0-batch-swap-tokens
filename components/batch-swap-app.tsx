@@ -6,8 +6,8 @@ import { base } from "wagmi/chains"
 import { ConnectKitButton } from "connectkit"
 import { TokenList } from "./token-list"
 import { SwapButton } from "./swap-button"
+import { PastSwapsDropdown } from "./past-swaps-dropdown"
 import type { TokenBalance } from "@/types/token"
-
 
 const TRAIL_ID = "01981008-788e-7612-b501-b7f568328ef2"
 const VERSION_ID = "01981008-7892-747d-adfe-4fbf2281aac9"
@@ -39,10 +39,10 @@ export function BatchSwapApp() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/token-balances', {
-        method: 'POST',
+      const response = await fetch("/api/token-balances", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ walletAddress: address }),
       })
@@ -93,6 +93,10 @@ export function BatchSwapApp() {
     setSelectedTokens(new Map())
   }
 
+  const handleSwapComplete = () => {
+    setSelectedTokens(new Map())
+  }
+
   const selectedTokensList = tokens.filter((token) => selectedTokens.has(token.address))
   const totalValue = selectedTokensList.reduce((sum, token) => {
     const percentage = selectedTokens.get(token.address) || 100
@@ -121,6 +125,7 @@ export function BatchSwapApp() {
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
               <span className="text-white">{selectedTokens.size} selected</span>
+              {address && <PastSwapsDropdown walletAddress={address} />}
             </div>
             <div className="flex items-center gap-3">
               <button onClick={() => handleSelectMultiple(10)} className="text-white underline text-sm">
@@ -153,6 +158,8 @@ export function BatchSwapApp() {
               versionId={VERSION_ID}
               trailAppId={TRAIL_APP_ID}
               primaryNodeId={PRIMARY_NODE_ID}
+              onSwapComplete={handleSwapComplete}
+              onReloadBalances={loadTokenBalances}
             />
           )}
         </div>
@@ -160,7 +167,13 @@ export function BatchSwapApp() {
 
       {/* Footer */}
       <footer className="fixed bottom-0 text-center text-xs text-gray-500 bg-black w-full min-h-[20px]">
-        <a href="https://herd.eco/trails/01981008-788e-7612-b501-b7f568328ef2/overlook" target="_blank">Powered by Herd</a>
+        <a
+          href="https://herd.eco/trails/01981008-788e-7612-b501-b7f568328ef2/overlook"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Powered by Herd
+        </a>
       </footer>
     </div>
   )

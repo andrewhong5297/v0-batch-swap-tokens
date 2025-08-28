@@ -15,6 +15,9 @@ interface SwapButtonProps {
   versionId: string
   trailAppId: string
   primaryNodeId: string
+  onSwapComplete?: () => void
+  onReloadBalances?: () => void
+  onReloadPastSwaps?: () => void
 }
 
 type SwapStep = "idle" | "approving" | "swapping" | "completed"
@@ -27,6 +30,9 @@ export function SwapButton({
   versionId,
   trailAppId,
   primaryNodeId,
+  onSwapComplete,
+  onReloadBalances,
+  onReloadPastSwaps,
 }: SwapButtonProps) {
   const { address } = useAccount()
   const { data: walletClient } = useWalletClient()
@@ -36,7 +42,11 @@ export function SwapButton({
 
   const handleSwap = async () => {
     if (!address || !walletClient || selectedTokens.length === 0) {
-      console.log("No address or wallet client or no selected tokens, won't proceed with swap", { address, walletClient, selectedTokens })
+      console.log("No address or wallet client or no selected tokens, won't proceed with swap", {
+        address,
+        walletClient,
+        selectedTokens,
+      })
       return
     }
 
@@ -59,7 +69,9 @@ export function SwapButton({
               userInputs: {
                 [primaryNodeId]: {
                   contract_address: { value: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913" }, // USDC
-                  sell_token_address: { value: token.address === "native" ? "0x0000000000000000000000000000000000000000" : token.address },
+                  sell_token_address: {
+                    value: token.address === "native" ? "0x0000000000000000000000000000000000000000" : token.address,
+                  },
                   sell_token_amount: { value: actualAmountToSwap.toString() },
                 },
               },
@@ -146,10 +158,19 @@ export function SwapButton({
       if (executionPromises) {
         await Promise.all(executionPromises)
         console.log("[v0] All executions submitted successfully")
+        if (onReloadPastSwaps) {
+          onReloadPastSwaps()
+        }
       }
 
       setSwapStep("completed")
-      setTimeout(() => setSwapStep("idle"), 3000) // Reset after 3 seconds
+
+      if (onSwapComplete) {
+        onSwapComplete()
+      }
+      if (onReloadBalances) {
+        onReloadBalances()
+      }
     } catch (error) {
       console.error("[v0] Error during batch swap:", error)
       setSwapStep("idle")
@@ -192,11 +213,7 @@ export function SwapButton({
               return (
                 <div key={token.address} className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={token.logo || "/placeholder.svg"}
-                      alt={token.symbol}
-                      className="w-8 h-8 rounded-full"
-                    />
+                    <img src={token.logo || "/placeholder.svg"} alt={token.symbol} className="w-8 h-8 rounded-full" />
                     <div>
                       <div className="text-sm font-medium">{token.symbol}</div>
                       <div className="text-xs text-gray-400">
