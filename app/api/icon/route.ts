@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server"
 
 export async function GET() {
-  // Generate a 1024x1024 token-themed icon
-  const imageBuffer = await fetch("/token-icon.png").then((res) => res.arrayBuffer())
-
-  return new NextResponse(Buffer.from(imageBuffer), {
-    headers: {
-      "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=31536000",
-    },
-  })
+  return NextResponse.redirect(
+    new URL("/token-icon.png", process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+  )
 }
