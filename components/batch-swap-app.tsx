@@ -8,6 +8,7 @@ import { TokenList } from "./token-list"
 import { SwapButton } from "./swap-button"
 import { PastSwapsDropdown } from "./past-swaps-dropdown"
 import type { TokenBalance } from "@/types/token"
+import { sdk } from "@farcaster/frame-sdk"
 
 const TRAIL_ID = "01981008-788e-7612-b501-b7f568328ef2"
 const VERSION_ID = "01981008-7892-747d-adfe-4fbf2281aac9"
@@ -20,6 +21,18 @@ export function BatchSwapApp() {
   const [tokens, setTokens] = useState<TokenBalance[]>([])
   const [selectedTokens, setSelectedTokens] = useState<Map<string, number>>(new Map())
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const initializeSdk = async () => {
+      try {
+        await sdk.actions.ready()
+      } catch (error) {
+        console.error("Failed to initialize SDK:", error)
+      }
+    }
+
+    initializeSdk()
+  }, [])
 
   useEffect(() => {
     if (status === "connected") {
