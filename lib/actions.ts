@@ -25,18 +25,30 @@ export async function fetchPastSwaps(walletAddress: string) {
 
     const data = await response.json()
 
-    // Extract transaction hashes with swap details from step 1 transactions
-    const pastSwaps = data.totals?.stepStats?.["1"]?.transactionHashes || []
+    // Extract transaction data from walletExecutions.txnsPerStep instead of totals
+    const pastSwaps: any[] = []
 
-    return pastSwaps.map((swap: any) => ({
-      txHash: swap.txHash,
-      blockTimestamp: swap.blockTimestamp,
-      sellTokenSymbol: swap.evaluation?.finalInputValues?.sell_token_symbol || "Unknown",
-      sellTokenAmount: swap.evaluation?.finalInputValues?.sell_token_amount || "0",
-      buyTokenSymbol: swap.evaluation?.finalInputValues?.buy_token_symbol || "Unknown",
-      buyTokenAmount: swap.evaluation?.finalInputValues?.buy_token_amount || "0",
-      sellTokenAmountUsd: swap.evaluation?.finalInputValues?.sell_token_amount_usd || "0",
-    }))
+    if (data.walletExecutions && data.walletExecutions.length > 0) {
+      for (const walletExecution of data.walletExecutions) {
+        // Get transactions from step 1 (the swap step)
+        const step1Transactions = walletExecution.txnsPerStep?.["1"] || []
+
+        for (const transaction of step1Transactions) {
+          pastSwaps.push({
+            txHash: transaction.txHash,
+            blockTimestamp: transaction.blockTimestamp,
+            sellTokenSymbol: transaction.evaluation?.finalInputValues?.sell_token_symbol || "Unknown",
+            sellTokenAmount: transaction.evaluation?.finalInputValues?.sell_token_amount || "0",
+            buyTokenSymbol: transaction.evaluation?.finalInputValues?.buy_token_symbol || "Unknown",
+            buyTokenAmount: transaction.evaluation?.finalInputValues?.buy_token_amount || "0",
+            sellTokenAmountUsd: transaction.evaluation?.finalInputValues?.sell_token_amount_usd || "0",
+          })
+        }
+      }
+    }
+
+    // Sort by block timestamp (most recent first)
+    return pastSwaps.sort((a, b) => b.blockTimestamp - a.blockTimestamp)
   } catch (error) {
     console.error("Error fetching past swaps:", error)
     return []
